@@ -1,14 +1,13 @@
-# vue-custom-template
+# 2048
 
-> 基于vue2.0 自定义vue cli 模板
+> 基于vue 简单的2048小游戏
 
 ## 
 
 ``` bash
-# https://www.npmjs.com/package/hj-vli
 
-npm install hj-vli -g
+npm install
 
-vli init default ceshi
+npm run dev
 
 ```
