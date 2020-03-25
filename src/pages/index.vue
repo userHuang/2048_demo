@@ -12,6 +12,10 @@
       <button class="restart" @click="reStart">重新开始</button>
       <button class="max-score">历史最高分</button>
     </div>
+    <div class="model" v-show="!canMove"  @click="canMove = true"></div>
+    <div class="tips" v-show="!canMove">
+      game over
+    </div>
   </div>
 </template>
 
@@ -109,6 +113,32 @@
       background: #ccb934;
     }
   }
+  .model {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: #ccccccb3;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    margin: auto;
+  }
+  .tips {
+    width: 260px;
+    height: 180px;
+    background: #fdba76;
+    line-height: 180px;
+    text-align: center;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    margin: auto;
+    margin-top: 50%;
+    font-size: 28px;
+  }
 }
 @media screen and (max-width: 370px ) {
   .home-page {
@@ -134,14 +164,14 @@ export default {
     return {
       palace: 4, // 4x4方格
       score: 0,
-      oldScore: '0',
-      initData: [2, 1024, 0, 0,
-              64, 32, 8, 0,
-              4, 8, 128, 256,
-              8, 1024, 2048, 256],
+      // initData: [2, 1024,  0,    0,
+      //            64, 32,   8,    0,
+      //            4,  8,    128,  256,
+      //            8,  1024, 2048, 256],
       datas: [],
-      // initData: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-      randomNums: [2, 4]
+      initData: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      randomNums: [2, 4],
+      canMove: true
     }
   },
 
@@ -152,7 +182,7 @@ export default {
   methods: {
     init () {
       this.score = 0
-      this.oldScore = '0'
+      this.canMove = true
       const data = [...this.initData]
       this.datas = this.randomValue(data)
     },
@@ -210,12 +240,32 @@ export default {
       })
       
       // 判断方格是否有可合并的数值
-      // if (!copysDatas.includes(0) && (this.oldScore === this.score)) {
-      //   copysDatas.forEach((item, index) => {
-          
-      //   })
-      // }
-      // this.oldScore = this.score
+      let canMove = false
+      if (!copysDatas.includes(0)) {
+        copysDatas.forEach((item, index) => {
+          // 判断左上3X3方格中每一个值和他的右边以及下边的值是否相等
+          if (index <= 2 || (index >= 4 || index <= 6) || (index >= 8 || index <= 10)) {
+            if ((item === copysDatas[index + 1]) || (item === copysDatas[index + 4])) {
+              canMove = true
+            }
+          }
+          // 判断最右侧的上三个数与下方值是否相等 
+          if (index === 3 || index === 7 || index === 11) {
+            if (item === copysDatas[index + 4]) {
+              canMove = true
+            }
+          }
+          // 判断最下侧的左三个数与右方值是否相等 
+          if (index === 12 || index === 13 || index === 14) {
+            if (item === copysDatas[index + 1]) {
+              canMove = true
+            }
+          }
+        })
+        if (!canMove) {
+          this.canMove = false
+        }
+      }
       copysDatas = this.mergeData([...copysDatas], palace)
       return copysDatas
     },
