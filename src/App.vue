@@ -20,13 +20,24 @@ export default {
   },
 
   created () {
+    // 防止页面滑动
     document.body.addEventListener('touchmove', function(e) {
-      if(e._isScroller) return;
+      if(e._isScroller) return
       // 阻止默认事件
-      e.preventDefault();
+      e.preventDefault()
     }, {
         passive: false
-    });
+    })
+
+    // 禁用手指双击缩放
+    let lastTouchEnd = 0
+    document.documentElement.addEventListener('touchend', function (event) {
+      const now = Date.now()
+      if (now - lastTouchEnd <= 300) {
+        event.preventDefault()
+      }
+      lastTouchEnd = now
+    }, false)
   }
 }
 </script>

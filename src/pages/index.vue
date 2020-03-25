@@ -1,15 +1,30 @@
 <template>
-  <scroll @scrollTop="scrollTop" @scrollBottom="scrollBottom" @scrollLeft="scrollLeft" @scrollRight="scrollRight">
-    <div class="home-page">
-      <div class="item" :class="`item_${item}`" v-for="(item, index) in datas" :key="index">
-        <span v-if="item">{{item}}</span>
+  <div class="home-page">
+    <div class="title">得分：{{score}}</div>
+    <scroll @scrollTop="scrollTop" @scrollBottom="scrollBottom" @scrollLeft="scrollLeft" @scrollRight="scrollRight">
+      <div class="main-content">
+        <div class="item" :class="`item_${item}`" v-for="(item, index) in datas" :key="index">
+          <span v-if="item">{{item}}</span>
+        </div>
       </div>
+    </scroll>
+    <div class="action">
+      <button class="restart" @click="reStart">重新开始</button>
+      <button class="max-score">历史最高分</button>
     </div>
-  </scroll>
+  </div>
 </template>
 
 <style lang="stylus" scoped>
-  .home-page {
+.home-page {
+  user-select: none;
+  .title {
+    text-align: center;
+    line-height: 50px;
+    font-size: 20px;
+    font-family: cursive;
+  }
+  .main-content{
     background: #e7eadd;
     color: red;
     max-width: 400px;
@@ -71,6 +86,41 @@
       color: #FFF;
     }
   }
+  .action {
+    margin-top: 10px;
+    line-height: 60px;
+    text-align: center;
+    background: #ded4d4;
+
+    button {
+      height: 40px;
+      border: none;
+      color: #FFF;
+      font-size: 16px;
+      width: 120px;
+    }
+
+    .restart {
+      background: #27b338;
+      margin-right: 20px;
+    }
+
+    .max-score {
+      background: #ccb934;
+    }
+  }
+}
+@media screen and (max-width: 370px ) {
+  .home-page {
+    .main-content {
+      .item {
+        width: 65px;
+        height: 65px;
+        line-height: 65px;
+      }
+    }
+  }
+}
 </style>
 
 <script>
@@ -83,14 +133,34 @@ export default {
   data () {
     return {
       palace: 4, // 4x4方格
-      datas: [2, 4, 0, 0,
-              4, 4, 8, 0,
+      score: 0,
+      oldScore: '0',
+      initData: [2, 1024, 0, 0,
+              64, 32, 8, 0,
               4, 8, 128, 256,
-              8, 1024, 2048, 256]
+              8, 1024, 2048, 256],
+      datas: [],
+      // initData: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      randomNums: [2, 4]
     }
   },
 
+  created () {
+    this.init()
+  },
+
   methods: {
+    init () {
+      this.score = 0
+      this.oldScore = '0'
+      const data = [...this.initData]
+      this.datas = this.randomValue(data)
+    },
+  
+    reStart () {
+      this.init()
+    },
+
     mergeData (copysDatas, palace) {
       // 上滑或者下滑时  交换空值的位置
       const updateNullValue = () => {
@@ -107,6 +177,26 @@ export default {
       return copysDatas
     },
 
+    // 生成随机值
+    randomValue (datas) {
+      let randomNull = []
+      // 取出所以空值的下标
+      datas.forEach((item, index) => {
+        if (!item) {
+          randomNull.push(index)
+        }
+      })
+      // 随机取出一个空值下标
+      const randomNullIndex= Math.floor((Math.random() * randomNull.length))
+
+      // 在randomNums中随机取出一个数
+      const randomNumIndex = Math.floor((Math.random() * this.randomNums.length))
+      const randomNum = this.randomNums[randomNumIndex]
+      // 给随机出的空值 补值
+      datas[randomNull[randomNullIndex]] = randomNum
+      return datas
+    },
+
     // 滑动时数据处理
     scrollingActon (copysDatas, palace) {
       copysDatas = this.mergeData(copysDatas, palace)
@@ -115,8 +205,17 @@ export default {
         if (index <= 11 && value && (copysDatas[index] == copysDatas[index + palace])) {
           copysDatas[index] = copysDatas[index] + copysDatas[index + palace]
           copysDatas[index + palace] = 0
+          this.score += copysDatas[index]
         }
       })
+      
+      // 判断方格是否有可合并的数值
+      // if (!copysDatas.includes(0) && (this.oldScore === this.score)) {
+      //   copysDatas.forEach((item, index) => {
+          
+      //   })
+      // }
+      // this.oldScore = this.score
       copysDatas = this.mergeData([...copysDatas], palace)
       return copysDatas
     },
@@ -187,6 +286,7 @@ export default {
       const palace = this.palace
       let copysDatas = [...this.datas]
       copysDatas = this.scrollingActon(copysDatas, palace)
+      copysDatas = this.randomValue(copysDatas)
       this.datas = copysDatas
     },
 
@@ -197,6 +297,7 @@ export default {
       copysDatas = this.scrollingActon(copysDatas, palace)
       // 再反转 得到原先数据
       copysDatas = this.fixScrollBottomData(copysDatas, palace)
+      copysDatas = this.randomValue(copysDatas)
       this.datas = copysDatas
     },
 
@@ -208,6 +309,7 @@ export default {
       copysDatas = this.scrollingActon(copysDatas, palace)
       // 再将数据反转并顺时针旋转90度 得到原先的数据
       copysDatas = this.fixScrollRightData(copysDatas.reverse(), palace)
+      copysDatas = this.randomValue(copysDatas)
       this.datas = copysDatas
     },
 
@@ -217,6 +319,7 @@ export default {
       let copysDatas = this.fixScrollRightData(this.datas.reverse(), palace)
       copysDatas = this.scrollingActon(copysDatas, palace)
       copysDatas = this.fixScrollRightData(copysDatas, palace)
+      copysDatas = this.randomValue(copysDatas)
       this.datas = copysDatas
     }
   }
