@@ -82,56 +82,18 @@ export default {
 
   data () {
     return {
-      palace: 4,
-      // datas: [{
-      //   value: 0
-      // }, {
-      //   value: 0
-      // }, {
-      //   value: 0
-      // }, {
-      //   value: 0
-      // }, {
-      //   value: 32
-      // }, {
-      //   value: 64
-      // }, {
-      //   value: 128
-      // }, {
-      //   value: 256
-      // }, {
-      //   value: 512
-      // }, {
-      //   value: 1024
-      // }, {
-      //   value: 2048
-      // }, {
-      //   value: 4096
-      // }, {
-      //   value: 8192
-      // }, {
-      //   value: 16384
-      // }, {
-      //   value: 32768
-      // }, {
-      //   value: 65536
-      // }],
+      palace: 4, // 4x4方格
       datas: [2, 4, 0, 0,
-              2, 4, 8, 0,
+              4, 4, 8, 0,
               4, 8, 128, 256,
               8, 1024, 2048, 256]
     }
   },
 
-  created () {
-    console.log('-----created------')
-  },
-
   methods: {
     mergeData (copysDatas, palace) {
       // 上滑或者下滑时  交换空值的位置
-
-      var isNull = () => {
+      const updateNullValue = () => {
         copysDatas.forEach((item, index) => {
           if (!item && index <= 11) {
             [copysDatas[index], copysDatas[index + palace]] = 
@@ -139,13 +101,14 @@ export default {
           }
         })
       }
-      isNull(copysDatas)
-      isNull(copysDatas)
-      isNull(copysDatas)
+      updateNullValue(copysDatas)
+      updateNullValue(copysDatas)
+      updateNullValue(copysDatas)
       return copysDatas
     },
 
-    topOrButtom (copysDatas, palace) {
+    // 滑动时数据处理
+    scrollingActon (copysDatas, palace) {
       copysDatas = this.mergeData(copysDatas, palace)
       // 有相同值处理相加，并默认后者值为0
       copysDatas.forEach((value, index) => {
@@ -158,64 +121,102 @@ export default {
       return copysDatas
     },
 
-    scrollTop () {
-      console.log('=====scrollTop========')
-      const palace = this.palace
-      let copysDatas = [...this.datas]
-      copysDatas = this.topOrButtom(copysDatas, palace)
-      this.datas = copysDatas
-    },
-
-    scrollBottom () {
-      // 下滑跟上滑处理一致，只需把数据反转
-      const palace = this.palace
-      let copysDatas = [...this.datas]
-      this.topOrButtom(copysDatas.reverse(), palace)
-      copysDatas = this.datas = copysDatas
-      copysDatas.reverse()
-      console.log('=====scrollBottom========')
-    },
-
-
-    rightData (datas, palace) {
+    // 向下滑动时数据处理
+    fixScrollBottomData (datas, palace) {
+      /**
+       * 向下滑动 相当于把数据上下反转
+       * 
+       * 1(13)    2(14)   3(15)    4(16)
+         5(9)     6(10)   7(11)    8(12)
+         9(5)     10(6)   11(7)    12(8)
+         13(1)    14(2)   15(3)    16(4)
+       */
       let copysDatas = []
       datas.forEach((item, index) => {
-        let dex = index + 1
-        const remainder = dex % palace // 余数
-        const divisor = parseInt(dex / palace) //除数
-        if (remainder === 0) {
-          copysDatas[divisor - 1] = datas[index]
+        if (index <= 3) {
+          let num = (index + 3 * palace)
+          copysDatas[num] = datas[index]
         }
-        if (remainder === 3) {
-          copysDatas[divisor + 5 - 1] = datas[index]
+        if (index > 3 && index <= 7) {
+          let num = (index + palace)
+          copysDatas[num] = datas[index]
         }
-        if (remainder === 2) {
-          copysDatas[divisor + 9 - 1] = datas[index]
+
+        if (index > 7 && index <= 11) {
+          let num = (index - palace)
+          copysDatas[num] = datas[index]
         }
-        if (remainder === 1) {
-          copysDatas[divisor + 13 - 1] = datas[index]
+
+        if (index > 11 && index <= 15) {
+          let num = (index - 3 * palace)
+          copysDatas[num] = datas[index]
         }
       })
       return copysDatas
     },
 
-    scrollLeft () {
-      console.log('=====scrollLeft========')
+    // 想右滑动时数据处理
+    fixScrollRightData (datas, palace) {
+      /**
+       * 往右滑动  相当于把数据顺时针旋转90度
+       * 原先的下标排序 1 2 3  4   5 6  7  8    9 10 11 12  13 14 15 16
+       * 旋转后下标排序 4 8 12 16  3 7 11 15    2 6  10 14  1  5  9  13
+        1(13)   2(9)   3(5)   4(1)
+        5(14)   6(10)  7(6)   8(2)
+        9(15)  10(11)  11(7)  12(3)
+        13(16) 14(12)  15(8)  16(4)
+      */
+      let copysDatas = []
+      datas.forEach((item, index) => {
+        const dex = index + 1
+        const remainder = dex % palace // 余数
+        const divisor = parseInt(dex / palace) //除数
+        const num = (palace - remainder) * palace + 1
+        if (remainder === 0) {
+          copysDatas[divisor - 1] = datas[index]
+        }
+        // 目前是 4X4 宫格  remainder从3开始
+        if (remainder === 3 || remainder === 2 || remainder === 1) {
+          copysDatas[divisor + num - 1] = datas[index]
+        }
+      })
+      return copysDatas
+    },
+
+    scrollTop () {
       const palace = this.palace
-      let copysDatas = this.rightData(this.datas.reverse(), palace)
-      copysDatas = this.topOrButtom(copysDatas, palace)
-      copysDatas = this.rightData(copysDatas, palace)
-      console.log(copysDatas)
+      let copysDatas = [...this.datas]
+      copysDatas = this.scrollingActon(copysDatas, palace)
+      this.datas = copysDatas
+    },
+
+    scrollBottom () {
+      const palace = this.palace
+      // 按照4X4方格 反转对称处理数据
+      let copysDatas = this.fixScrollBottomData(this.datas, palace)
+      copysDatas = this.scrollingActon(copysDatas, palace)
+      // 再反转 得到原先数据
+      copysDatas = this.fixScrollBottomData(copysDatas, palace)
       this.datas = copysDatas
     },
 
     scrollRight () {
-      console.log('=====scrollRight========')
       const palace = this.palace
-      let copysDatas = this.rightData(this.datas, palace)
-      copysDatas = this.topOrButtom(copysDatas, palace)
-      copysDatas = this.rightData(copysDatas.reverse(), palace)
-      console.log(copysDatas)
+      // 按照4X4方格 得到顺时针旋转90度后的数据
+      let copysDatas = this.fixScrollRightData(this.datas, palace)
+      // 按照上滑情况处理
+      copysDatas = this.scrollingActon(copysDatas, palace)
+      // 再将数据反转并顺时针旋转90度 得到原先的数据
+      copysDatas = this.fixScrollRightData(copysDatas.reverse(), palace)
+      this.datas = copysDatas
+    },
+
+    scrollLeft () {
+      // 与右滑类似处理
+      const palace = this.palace
+      let copysDatas = this.fixScrollRightData(this.datas.reverse(), palace)
+      copysDatas = this.scrollingActon(copysDatas, palace)
+      copysDatas = this.fixScrollRightData(copysDatas, palace)
       this.datas = copysDatas
     }
   }
