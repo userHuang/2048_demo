@@ -4,7 +4,6 @@
     <p class="welcome">welcome</p>
     <button @click="play">开始游戏</button>
     <button v-clipboard:copy="message" v-clipboard:success="onCopy">分享好友</button>
-    <textarea id="shareUrl" style="display: none" value="222">33334433333</textarea>
     <div class="tips" v-show="isShow">连接已复制，快去分享给好友吧~</div>
   </div>
 </template>
@@ -64,8 +63,12 @@
 export default {
   data () {
     return {
-      message: window.location.href,
       isShow: false
+    }
+  },
+  computed: {
+    message () {
+      return window.location.href
     }
   },
   methods: {

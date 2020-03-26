@@ -5,7 +5,7 @@
     </div>
     <scroll @scrollTop="scrollTop" @scrollBottom="scrollBottom" @scrollLeft="scrollLeft" @scrollRight="scrollRight">
       <div class="main-content">
-        <div class="item" :class="`item_${item}`" v-for="(item, index) in datas" :key="index">
+        <div class="item" :class="`item_${item}`" v-for="(item, index) in datas" :key="`${item}_${index}`">
           <span v-if="item">{{item}}</span>
         </div>
       </div>
@@ -27,6 +27,8 @@
 <style lang="stylus" scoped>
 .home-page {
   user-select: none;
+  background: #ded9cb;
+  height: 100%;
   .title {
     text-align: center;
     line-height: 50px;
@@ -215,7 +217,7 @@ export default {
       interject: '',
       oldInterject: '',
       isInterject: false,
-      emoji: ''
+      emoji: '😭'
     }
   },
 
@@ -381,6 +383,7 @@ export default {
       })
 
       if (this.score > this.maxScore) {
+        this.maxScore = this.score
         window.localStorage.setItem('MAXSCORE', this.score)
       }
 
