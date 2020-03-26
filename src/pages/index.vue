@@ -1,6 +1,8 @@
 <template>
   <div class="home-page">
-    <div class="title">得分：{{score}}</div>
+    <div class="title">
+      <span>得分：{{score}}</span>
+    </div>
     <scroll @scrollTop="scrollTop" @scrollBottom="scrollBottom" @scrollLeft="scrollLeft" @scrollRight="scrollRight">
       <div class="main-content">
         <div class="item" :class="`item_${item}`" v-for="(item, index) in datas" :key="index">
@@ -10,12 +12,15 @@
     </scroll>
     <div class="action">
       <button class="restart" @click="reStart">重新开始</button>
-      <button class="max-score">历史最高分</button>
+      <button class="max-score" @click="showScore">历史最高分</button>
     </div>
-    <div class="model" v-show="!canMove"  @click="canMove = true"></div>
-    <div class="tips" v-show="!canMove">
-      game over
+    <div class="model" v-show="!isShowDialog"  @click="isShowDialog = true"></div>
+    <div class="tips" v-show="!isShowDialog">
+      <p class="head">{{dialogTitle}}</p>
+      <p class="value">{{dialogTips}} {{emoji}}</p>
     </div>
+    <div class="interjection" v-show="isInterject">{{interject}}</div>
+    <span class="goBack" @click="goBack"></span>
   </div>
 </template>
 
@@ -92,16 +97,17 @@
   }
   .action {
     margin-top: 10px;
-    line-height: 60px;
+    line-height: 70px;
     text-align: center;
     background: #ded4d4;
 
     button {
-      height: 40px;
+      height: 50px;
       border: none;
       color: #FFF;
-      font-size: 16px;
-      width: 120px;
+      font-size: 18px;
+      width: 140px;
+      letter-spacing: 2px;
     }
 
     .restart {
@@ -127,7 +133,7 @@
   .tips {
     width: 260px;
     height: 180px;
-    background: #fdba76;
+    background: #8a4c35;
     line-height: 180px;
     text-align: center;
     position: absolute;
@@ -138,6 +144,39 @@
     margin: auto;
     margin-top: 50%;
     font-size: 28px;
+
+    .head, .value{
+      height: 60px;
+      line-height: 60px;
+      margin: 0px;
+      color: #FFF;
+    }
+
+    .head {
+      margin-bottom: 10px;
+      color: #50d473;
+    }
+  }
+  .interjection {
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    position: absolute;
+    width: 100%;
+    top: 30px;
+    font-size: 24px;
+    color: #26f10d;
+    font-family: initial;
+  }
+  .goBack {
+    position: absolute;
+    width: 50px;
+    top: 0px;
+    height: 50px;
+    line-height: 50px;
+    background: url(".././assets/images/go_back.png") no-repeat;
+    background-size: 50px 50px;
+    background-position: center;
   }
 }
 @media screen and (max-width: 370px ) {
@@ -164,14 +203,19 @@ export default {
     return {
       palace: 4, // 4x4方格
       score: 0,
-      // initData: [2, 1024,  0,    0,
-      //            64, 32,   8,    0,
-      //            4,  8,    128,  256,
-      //            8,  1024, 2048, 256],
+      maxScore: 0,
+
       datas: [],
       initData: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       randomNums: [2, 4],
-      canMove: true
+
+      isShowDialog: true,
+      dialogTips: 'Game Over',
+      dialogTitle: '',
+      interject: '',
+      oldInterject: '',
+      isInterject: false,
+      emoji: ''
     }
   },
 
@@ -182,13 +226,110 @@ export default {
   methods: {
     init () {
       this.score = 0
-      this.canMove = true
+      this.isShowDialog = true
+      this.dialogTips = 'Game Over'
+      this.dialogTitle = ''
+      this.interject = ''
+      this.oldInterject = ''
+      this.isInterject = false
       const data = [...this.initData]
       this.datas = this.randomValue(data)
+      if (window.localStorage.getItem('MAXSCORE')) {
+        this.maxScore = window.localStorage.getItem('MAXSCORE')
+      }
     },
-  
+
+    // 重新开始
     reStart () {
       this.init()
+    },
+
+    // 展示历史最高分
+    showScore () {
+      this.isShowDialog = false
+      this.dialogTips = this.maxScore
+      this.dialogTitle = 'Max Score'
+      const score = this.maxScore
+      if (score > 1000) {
+        this.emoji = '😐'
+      }
+      if (score > 2000) {
+        this.emoji = '😉'
+      }
+      if (score > 3000) {
+        this.emoji = '😀'
+      }
+      if (score > 4000) {
+        this.emoji = '😂'
+      }
+      if (score > 6000) {
+        this.emoji = '😎'
+      }
+      if (score > 8000) {
+        this.emoji = '😘'
+      }
+      if (score > 10000) {
+        this.emoji = '❤'
+      }
+    },
+
+    // 显示游戏结束
+    showGameOver () {
+      this.isShowDialog = false
+      this.dialogTips = 'Game Over'
+      this.dialogTitle = 'Sorry'
+      this.emoji = '☹'
+    },
+
+    // 是否显示感叹词
+    isShowInterjection () {
+      const score = this.score
+      if (score > 500) {
+        this.interject = 'Good'
+      }
+      if (score > 1000) {
+        this.interject = 'Super'
+      }
+      if (score > 1500) {
+        this.interject = 'Perfect'
+      }
+      if (score > 2000) {
+        this.interject = 'Excellent'
+      }
+      if (score > 2500) {
+        this.interject = 'Outstanding'
+      }
+      if (score > 3000) {
+        this.interject = 'Well done'
+      }
+      if (score > 3500) {
+        this.interject = 'Super star'
+      }
+      if (score > 4000) {
+        this.interject = 'You are special'
+      }
+      if (score > 4500) {
+        this.interject = 'You are so smart'
+      }
+      if (score > 6000) {
+        this.interject = 'I envy you very much'
+      }
+      if (score > 8000) {
+        this.interject = 'You are Outstanding'
+      }
+      if (score > 10000) {
+        this.interject = 'You are invincible'
+      }
+      if (score > 15000) {
+        this.interject = '求你别玩了, 我已经想不到词了'
+      }
+      if (this.oldInterject !== this.interject) {
+        this.isInterject = true
+        setTimeout(() => {
+          this.isInterject = false
+          this.oldInterject = this.interject
+        }, 2000)
+      }
     },
 
     mergeData (copysDatas, palace) {
@@ -238,32 +379,38 @@ export default {
           this.score += copysDatas[index]
         }
       })
+
+      if (this.score > this.maxScore) {
+        window.localStorage.setItem('MAXSCORE', this.score)
+      }
+
+      this.isShowInterjection()
       
       // 判断方格是否有可合并的数值
-      let canMove = false
+      let isShowDialog = false
       if (!copysDatas.includes(0)) {
         copysDatas.forEach((item, index) => {
           // 判断左上3X3方格中每一个值和他的右边以及下边的值是否相等
           if (index <= 2 || (index >= 4 || index <= 6) || (index >= 8 || index <= 10)) {
             if ((item === copysDatas[index + 1]) || (item === copysDatas[index + 4])) {
-              canMove = true
+              isShowDialog = true
             }
           }
           // 判断最右侧的上三个数与下方值是否相等 
           if (index === 3 || index === 7 || index === 11) {
             if (item === copysDatas[index + 4]) {
-              canMove = true
+              isShowDialog = true
             }
           }
           // 判断最下侧的左三个数与右方值是否相等 
           if (index === 12 || index === 13 || index === 14) {
             if (item === copysDatas[index + 1]) {
-              canMove = true
+              isShowDialog = true
             }
           }
         })
-        if (!canMove) {
-          this.canMove = false
+        if (!isShowDialog) {
+          this.showGameOver()
         }
       }
       copysDatas = this.mergeData([...copysDatas], palace)
@@ -371,6 +518,12 @@ export default {
       copysDatas = this.fixScrollRightData(copysDatas, palace)
       copysDatas = this.randomValue(copysDatas)
       this.datas = copysDatas
+    },
+
+    goBack () {
+      this.$router.push({
+        path: '/'
+      })
     }
   }
 }

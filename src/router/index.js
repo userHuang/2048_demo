@@ -6,8 +6,15 @@ Vue.use(Router)
 export default new Router({
   routes: [
     {
-      path: '/',
+      path: '/play',
       component: r => require(['@/pages/index'], r),
+      meta: {
+        keepAlive: false
+      }
+    },
+    {
+      path: '/',
+      component: r => require(['@/pages/login'], r),
       meta: {
         keepAlive: false
       }
