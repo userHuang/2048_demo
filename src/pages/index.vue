@@ -6,7 +6,7 @@
     <scroll @scrollTop="scrollTop" @scrollBottom="scrollBottom" @scrollLeft="scrollLeft" @scrollRight="scrollRight">
       <div class="main-content">
         <div class="item" :class="`item_${item}`" v-for="(item, index) in datas" :key="`${item}_${index}`">
-          <span v-if="item">{{item}}</span>
+          <div v-show="item" :ref=" transitionIndex == index ? `transition_${transitionIndex}`: ''">{{item}}</div>
         </div>
       </div>
     </scroll>
@@ -20,6 +20,7 @@
       <p class="value">{{dialogTips}} {{emoji}}</p>
     </div>
     <div class="interjection" v-show="isInterject">{{interject}}</div>
+    <fireworks v-show="isInterject"></fireworks>
     <span class="goBack" @click="goBack"></span>
   </div>
 </template>
@@ -180,6 +181,21 @@
     background-size: 50px 50px;
     background-position: center;
   }
+
+  .bounce-enter-active{
+    animation: bounce-in 0.5s;
+  }
+  @keyframes bounce-in {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.8);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
 }
 @media screen and (max-width: 370px ) {
   .home-page {
@@ -196,9 +212,11 @@
 
 <script>
 import scroll from '@/components/common/scroll'
+import fireworks from '@/components/common/fireworks'
 export default {
   components: {
-    scroll
+    scroll,
+    fireworks
   },
 
   data () {
@@ -217,7 +235,8 @@ export default {
       interject: '',
       oldInterject: '',
       isInterject: false,
-      emoji: '😭'
+      emoji: '😭',
+      transitionIndex: 0
     }
   },
 
@@ -280,7 +299,7 @@ export default {
       this.isShowDialog = false
       this.dialogTips = 'Game Over'
       this.dialogTitle = 'Sorry'
-      this.emoji = '☹'
+      this.emoji = '😭'
     },
 
     // 是否显示感叹词
@@ -367,6 +386,7 @@ export default {
       const randomNum = this.randomNums[randomNumIndex]
       // 给随机出的空值 补值
       datas[randomNull[randomNullIndex]] = randomNum
+      this.transitionIndex = randomNull[randomNullIndex]
       return datas
     },
 
@@ -482,12 +502,19 @@ export default {
       return copysDatas
     },
 
+    animationFn () {
+      this.$nextTick(() => {
+        this.$refs[`transition_${this.transitionIndex}`][0].className = 'bounce-enter-active'
+      })
+    },
+
     scrollTop () {
       const palace = this.palace
       let copysDatas = [...this.datas]
       copysDatas = this.scrollingActon(copysDatas, palace)
       copysDatas = this.randomValue(copysDatas)
       this.datas = copysDatas
+      this.animationFn()
     },
 
     scrollBottom () {
@@ -499,6 +526,7 @@ export default {
       copysDatas = this.fixScrollBottomData(copysDatas, palace)
       copysDatas = this.randomValue(copysDatas)
       this.datas = copysDatas
+      this.animationFn()
     },
 
     scrollRight () {
@@ -511,6 +539,7 @@ export default {
       copysDatas = this.fixScrollRightData(copysDatas.reverse(), palace)
       copysDatas = this.randomValue(copysDatas)
       this.datas = copysDatas
+      this.animationFn()
     },
 
     scrollLeft () {
@@ -521,6 +550,7 @@ export default {
       copysDatas = this.fixScrollRightData(copysDatas, palace)
       copysDatas = this.randomValue(copysDatas)
       this.datas = copysDatas
+      this.animationFn()
     },
 
     goBack () {

@@ -15,7 +15,7 @@
     height: 100%;
     background-size: contain;
     background-repeat: no-repeat;
-    background-position: center 300px;
+    background-position: center 260px;
 
     .title {
       height: 60px;
