@@ -6,7 +6,7 @@
     <scroll @scrollTop="scrollTop" @scrollBottom="scrollBottom" @scrollLeft="scrollLeft" @scrollRight="scrollRight">
       <div class="main-content">
         <div class="item" :class="`item_${item}`" v-for="(item, index) in datas" :key="`${item}_${index}`">
-          <div v-show="item" :ref=" transitionIndex == index ? `transition_${transitionIndex}`: ''">{{item}}</div>
+          <div v-show="item" :class="transitionIndex == index ? 'bounce-enter-active': ''">{{item}}</div>
         </div>
       </div>
     </scroll>
@@ -14,13 +14,13 @@
       <button class="restart" @click="reStart">重新开始</button>
       <button class="max-score" @click="showScore">历史最高分</button>
     </div>
-    <div class="model" v-show="!isShowDialog"  @click="isShowDialog = true"></div>
-    <div class="tips" v-show="!isShowDialog">
+    <div class="model" v-show="!notShowDialog"  @click="notShowDialog = true"></div>
+    <div class="tips" v-show="!notShowDialog">
       <p class="head">{{dialogTitle}}</p>
       <p class="value">{{dialogTips}} {{emoji}}</p>
     </div>
     <div class="interjection" v-show="isInterject">{{interject}}</div>
-    <fireworks v-show="isInterject"></fireworks>
+    <fireworks v-show="isFireworks"></fireworks>
     <span class="goBack" @click="goBack"></span>
   </div>
 </template>
@@ -229,30 +229,32 @@ export default {
       initData: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       randomNums: [2, 4],
 
-      isShowDialog: true,
+      notShowDialog: true,
       dialogTips: 'Game Over',
       dialogTitle: '',
       interject: '',
       oldInterject: '',
       isInterject: false,
+      isFireworks: false,
       emoji: '😭',
       transitionIndex: 0
     }
   },
 
-  created () {
+  mounted () {
     this.init()
   },
 
   methods: {
     init () {
       this.score = 0
-      this.isShowDialog = true
+      this.notShowDialog = true
       this.dialogTips = 'Game Over'
       this.dialogTitle = ''
       this.interject = ''
       this.oldInterject = ''
       this.isInterject = false
+      this.isFireworks =  false
       const data = [...this.initData]
       this.datas = this.randomValue(data)
       if (window.localStorage.getItem('MAXSCORE')) {
@@ -267,7 +269,7 @@ export default {
 
     // 展示历史最高分
     showScore () {
-      this.isShowDialog = false
+      this.notShowDialog = false
       this.dialogTips = this.maxScore
       this.dialogTitle = 'Max Score'
       const score = this.maxScore
@@ -292,14 +294,23 @@ export default {
       if (score > 10000) {
         this.emoji = '❤'
       }
+      this.showFireworks()
     },
 
     // 显示游戏结束
     showGameOver () {
-      this.isShowDialog = false
+      this.notShowDialog = false
       this.dialogTips = 'Game Over'
       this.dialogTitle = 'Sorry'
       this.emoji = '😭'
+    },
+
+    // 显示烟花效果
+    showFireworks () {
+      this.isFireworks = true
+      setTimeout(() => {
+        this.isFireworks = false
+      }, 2000)
     },
 
     // 是否显示感叹词
@@ -346,15 +357,17 @@ export default {
       }
       if (this.oldInterject !== this.interject) {
         this.isInterject = true
+        this.isFireworks = true
         setTimeout(() => {
           this.isInterject = false
+          this.isFireworks = false
           this.oldInterject = this.interject
         }, 2000)
       }
     },
 
+    // 上滑或者下滑时  交换空值的位置
     mergeData (copysDatas, palace) {
-      // 上滑或者下滑时  交换空值的位置
       const updateNullValue = () => {
         copysDatas.forEach((item, index) => {
           if (!item && index <= 11) {
@@ -387,7 +400,8 @@ export default {
       // 给随机出的空值 补值
       datas[randomNull[randomNullIndex]] = randomNum
       this.transitionIndex = randomNull[randomNullIndex]
-      return datas
+      console.log(randomNull[randomNullIndex], 'randomNull[randomNullIndex]')
+      return [...datas]
     },
 
     // 滑动时数据处理
@@ -410,29 +424,31 @@ export default {
       this.isShowInterjection()
       
       // 判断方格是否有可合并的数值
-      let isShowDialog = false
+      let notShowDialog = false
       if (!copysDatas.includes(0)) {
         copysDatas.forEach((item, index) => {
-          // 判断左上3X3方格中每一个值和他的右边以及下边的值是否相等
-          if (index <= 2 || (index >= 4 || index <= 6) || (index >= 8 || index <= 10)) {
-            if ((item === copysDatas[index + 1]) || (item === copysDatas[index + 4])) {
-              isShowDialog = true
+          // 判断上下有没有值相等
+          if (index >= 4) {
+            if (item === copysDatas[index - 4]) {
+              notShowDialog = true
             }
-          }
-          // 判断最右侧的上三个数与下方值是否相等 
-          if (index === 3 || index === 7 || index === 11) {
+          } else {
             if (item === copysDatas[index + 4]) {
-              isShowDialog = true
+              notShowDialog = true
             }
           }
-          // 判断最下侧的左三个数与右方值是否相等 
-          if (index === 12 || index === 13 || index === 14) {
+          // 判断左右有没有值相等
+          if ([4, 7, 11, 15].includes(index)) {
+            if (item === copysDatas[index - 1]) {
+              notShowDialog = true
+            }
+          } else {
             if (item === copysDatas[index + 1]) {
-              isShowDialog = true
+              notShowDialog = true
             }
           }
         })
-        if (!isShowDialog) {
+        if (!notShowDialog) {
           this.showGameOver()
         }
       }
@@ -502,19 +518,12 @@ export default {
       return copysDatas
     },
 
-    animationFn () {
-      this.$nextTick(() => {
-        this.$refs[`transition_${this.transitionIndex}`][0].className = 'bounce-enter-active'
-      })
-    },
-
     scrollTop () {
       const palace = this.palace
       let copysDatas = [...this.datas]
       copysDatas = this.scrollingActon(copysDatas, palace)
       copysDatas = this.randomValue(copysDatas)
       this.datas = copysDatas
-      this.animationFn()
     },
 
     scrollBottom () {
@@ -526,7 +535,6 @@ export default {
       copysDatas = this.fixScrollBottomData(copysDatas, palace)
       copysDatas = this.randomValue(copysDatas)
       this.datas = copysDatas
-      this.animationFn()
     },
 
     scrollRight () {
@@ -539,7 +547,6 @@ export default {
       copysDatas = this.fixScrollRightData(copysDatas.reverse(), palace)
       copysDatas = this.randomValue(copysDatas)
       this.datas = copysDatas
-      this.animationFn()
     },
 
     scrollLeft () {
@@ -550,7 +557,6 @@ export default {
       copysDatas = this.fixScrollRightData(copysDatas, palace)
       copysDatas = this.randomValue(copysDatas)
       this.datas = copysDatas
-      this.animationFn()
     },
 
     goBack () {
