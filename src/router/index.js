@@ -18,6 +18,13 @@ export default new Router({
       meta: {
         keepAlive: false
       }
+    },
+    {
+      path: '/snake',
+      component: r => require(['@/pages/snake'], r),
+      meta: {
+        keepAlive: false
+      }
     }
   ]
 })

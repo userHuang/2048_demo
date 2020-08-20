@@ -250,17 +250,6 @@ export default {
 
   mounted () {
     this.init()
-    // loudlinks(document)
-    // console.log(document.getElementById('loud'), '============')
-    setTimeout(() => {
-      // loudlinks(document)
-      // this.$refs.loudClick.click()
-      // alert(this.$refs.loudClick)
-      // console.log('-------')
-      // document.getElementById('loud').click()
-      // console.log(document.getElementById('loud'), '============')
-      // console.log(document.getElementById('loud').click, '============')
-    }, 10)
   },
 
   methods: {
