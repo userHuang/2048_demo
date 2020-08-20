@@ -45,6 +45,7 @@
       margin-bottom: 20px;
       background: #4eaf7e;
       letter-spacing: 2px;
+      border-radius: 10px
     }
     .tips {
       height: 48px;
@@ -76,6 +77,7 @@ export default {
       this.$router.push({
         path: '/play'
       })
+      document.getElementById('loud').click()
     },
     onCopy () {
       this.isShow = true

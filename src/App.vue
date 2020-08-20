@@ -1,6 +1,7 @@
 <template>
   <div id="app">
     <div class="app-page">
+      <div id="loud" class="loud-link-click" data-sound="shimmer-vibes" ref="loudClick"></div>
       <keep-alive>
         <router-view v-if="$route.meta.keepAlive"></router-view>
       </keep-alive>
@@ -10,6 +11,7 @@
 </template>
 
 <script>
+import loudlinks from '@/pages/utils/lounlinks.min.js'
 export default {
   name: 'App',
 
@@ -38,6 +40,10 @@ export default {
       }
       lastTouchEnd = now
     }, false)
+  },
+
+  mounted () {
+    loudlinks(document)
   }
 }
 </script>
@@ -45,6 +51,7 @@ export default {
 <style>
 body {
   background: #ded9cb;
+  cursor: pointer;
 }
 #app {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;

@@ -30,10 +30,11 @@
   user-select: none;
   background: #ded9cb;
   height: 100%;
+
   .title {
     text-align: center;
-    line-height: 50px;
-    font-size: 20px;
+    line-height: 60px;
+    font-size: 22px;
     font-family: cursive;
   }
   .main-content{
@@ -111,10 +112,11 @@
       font-size: 18px;
       width: 140px;
       letter-spacing: 2px;
+      border-radius: 10px;
     }
 
     .restart {
-      background: #27b338;
+      background: #b38827;
       margin-right: 20px;
     }
 
@@ -126,7 +128,7 @@
     position: absolute;
     width: 100%;
     height: 100%;
-    background: #ccccccb3;
+    background: rgba(0,0,0,0.3);
     left: 0;
     right: 0;
     top: 0;
@@ -136,7 +138,7 @@
   .tips {
     width: 260px;
     height: 180px;
-    background: #8a4c35;
+    background: #FFF;
     line-height: 180px;
     text-align: center;
     position: absolute;
@@ -147,17 +149,19 @@
     margin: auto;
     margin-top: 50%;
     font-size: 28px;
+    box-shadow: 2px 2px 1px #FFF;
+    border-radius: 10px;
 
     .head, .value{
       height: 60px;
       line-height: 60px;
       margin: 0px;
-      color: #FFF;
+      color: #d07e4f;
     }
 
     .head {
       margin-bottom: 10px;
-      color: #50d473;
+      color: #000;
     }
   }
   .interjection {
@@ -173,12 +177,12 @@
   }
   .goBack {
     position: absolute;
-    width: 50px;
+    width: 60px;
     top: 0px;
-    height: 50px;
-    line-height: 50px;
+    height: 60px;
+    line-height: 60px;
     background: url(".././assets/images/go_back.png") no-repeat;
-    background-size: 50px 50px;
+    background-size: 40px 40px;
     background-position: center;
   }
 
@@ -211,6 +215,7 @@
 </style>
 
 <script>
+import loudlinks from '@/pages/utils/lounlinks.min.js'
 import scroll from '@/components/common/scroll'
 import fireworks from '@/components/common/fireworks'
 export default {
@@ -237,12 +242,25 @@ export default {
       isInterject: false,
       isFireworks: false,
       emoji: '😭',
-      transitionIndex: 0
+      transitionIndex: 0,
+
+      audioCtx: null //音频声音
     }
   },
 
   mounted () {
     this.init()
+    // loudlinks(document)
+    // console.log(document.getElementById('loud'), '============')
+    setTimeout(() => {
+      // loudlinks(document)
+      // this.$refs.loudClick.click()
+      // alert(this.$refs.loudClick)
+      // console.log('-------')
+      // document.getElementById('loud').click()
+      // console.log(document.getElementById('loud'), '============')
+      // console.log(document.getElementById('loud').click, '============')
+    }, 10)
   },
 
   methods: {
@@ -265,6 +283,7 @@ export default {
     // 重新开始
     reStart () {
       this.init()
+      document.getElementById('loud').click()
     },
 
     // 展示历史最高分
@@ -408,14 +427,24 @@ export default {
     scrollingActon (copysDatas, palace) {
       copysDatas = this.mergeData(copysDatas, palace)
       // 有相同值处理相加，并默认后者值为0
+      let isSameValue = false
       copysDatas.forEach((value, index) => {
         if (index <= 11 && value && (copysDatas[index] == copysDatas[index + palace])) {
           copysDatas[index] = copysDatas[index] + copysDatas[index + palace]
           copysDatas[index + palace] = 0
           this.score += copysDatas[index]
+          isSameValue = true
         }
       })
 
+      // if (isSameValue) {
+      //   // 相同值触发音效
+      //   this.$refs.loudSlide.click()
+      // } else {
+      //   this.$refs.loudClick.click()
+      // }
+      document.getElementById('loud').click()
+      
       if (this.score > this.maxScore) {
         this.maxScore = this.score
         window.localStorage.setItem('MAXSCORE', this.score)
