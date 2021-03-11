@@ -1,7 +1,7 @@
 <template>
   <div class="snake-page">
     <div class="snake-list" ref="snakeList">
-      <div class="item" :style="snakeStyle" v-for="(item, index) in data" :key="index" :ref="`item_isHead_${item.isHead}`">{{item.value}}</div>
+      <div class="item" :style="item.snakeStyle" v-for="(item, index) in data" :key="index" :ref="`item_isHead_${item.isHead}`">{{item.value}}</div>
     </div>
   </div>
 </template>
@@ -12,8 +12,21 @@ export default {
   data () {
     return {
       data: [{
+        value: 2,
+        isHead: false,
+        snakeStyle: {
+          transform: `translate3d(0px, 0px, 0px)`,
+          transitionDuration: `0ms`,
+          transitionProperty: `none`
+        },
+      }, {
         value: 1,
-        isHead: true
+        isHead: true,
+        snakeStyle: {
+          transform: `translate3d(0px, 0px, 0px)`,
+          transitionDuration: `0ms`,
+          transitionProperty: `none`
+        }
       }],
       snakeStyle: {
         transform: `translate3d(0px, 0px, 0px)`,
@@ -60,16 +73,24 @@ export default {
       console.log(x,y, '====snakeList====')
       return {x, y}
     },
-    actionDown () {
-      const {x, y} = this.getSnakeXY()
-      this.actions.append({
+    actionChange (direction, x, y) {
+      this.actions.push({
         changeX: x,
         changeY: y,
-        direction: 34 //向右
+        direction
       })
     },
     transformFn () {
-
+      const fn = (actions) => {
+        actions.forEach(item => {
+          this.data.forEach(el => {
+            
+          })
+        })
+      }
+      if (this.data.length >1) {
+        fn(this.actions)
+      }
     }
   },
   mounted () {
@@ -84,6 +105,7 @@ export default {
         }
         // 
         let {x, y} = this.getSnakeXY()
+        this.actionChange(e1.keyCode, x, y)
         console.log('11111')
         clearInterval(this.timer)
         this.init(e1.keyCode, x, y)
