@@ -11,7 +11,8 @@ const snakeDivWidth = 360
 export default {
   data () {
     return {
-      data: [{
+      data: [
+        {
         value: 2,
         isHead: false,
         snakeStyle: {
@@ -19,9 +20,12 @@ export default {
           transitionDuration: `0ms`,
           transitionProperty: `none`
         },
-      }, {
+      }, 
+      {
         value: 1,
         isHead: true,
+        x: 0,
+        y: 0,
         snakeStyle: {
           transform: `translate3d(0px, 0px, 0px)`,
           transitionDuration: `0ms`,
@@ -37,30 +41,40 @@ export default {
       actions: [{
         changeX: snakeDivWidth,
         changeY: 0,
-        direction: 39 //向右
+        direction: 39, //向右
+        hasChangedIndexArr: []
       }],
       curentDirection: 39
     }
   },
   methods: {
-    init (direction, x, y) {
+    init (item, direction, x, y) {
       this.timer = setInterval(() => {
         console.log(x, y,'----x--y---')
-        if (direction == 37) {
+        if (direction == 37) { // 左
           x -= 20
         }
-        if (direction == 39) {
+        if (direction == 39) { // 右
           x += 20
         }
-        if (direction == 38) {
+        if (direction == 38) { // 上
           y -= 20
         }
-        if (direction == 40) {
+        if (direction == 40) { // 下
           y += 20
         }
-        this.snakeStyle.transform = `translate3d(${x}px, ${y}px, 0px)`
-        if (x == 340 || x == 0 || y == 0 || y == 340) {
-          clearInterval(this.timer)
+        // this.snakeStyle.transform = `translate3d(${x}px, ${y}px, 0px)`
+        // this.data.forEach(item => {
+        //   item.snakeStyle.transform = `translate3d(${x}px, ${y}px, 0px)`
+        // })
+        item.snakeStyle.transform = `translate3d(${x}px, ${y}px, 0px)`
+        item.x = x;
+        item.y = y;
+        if ((direction === 39 && x === 340) || 
+          (direction === 37 && x === 0) ||
+          (direction === 38 && y === 0) ||
+          (direction === 40 && y === 340)) {
+            clearInterval(this.timer)
         }
       }, 500)
     },
@@ -77,27 +91,40 @@ export default {
       this.actions.push({
         changeX: x,
         changeY: y,
-        direction
+        direction,
+        hasChangedIndexArr: [0]
       })
     },
-    transformFn () {
-      const fn = (actions) => {
-        actions.forEach(item => {
-          this.data.forEach(el => {
-            
+    transformFn (direction, x, y) {
+      const fn = () => {
+        this.actions.forEach(item => {
+          this.data.forEach((el, index) => {
+            if (!item.hasChangedIndexArr.includes(index)) {
+              if (item.changeX === el.x && item.changeY === el.y) {
+                item.hasChangedIndexArr.push(index)
+                this.init(el, item.direction, el.x, el.y)
+              }
+            }
+            if (item.hasChangedIndexArr.length === this.data.length) {
+              this.init(el, direction, el.x, el.y)
+            }
           })
         })
       }
-      if (this.data.length >1) {
-        fn(this.actions)
-      }
+      // if (this.data.length >1) {
+      //   fn(this.actions)
+      // }
+      fn()
     }
   },
   mounted () {
-    this.init(39, 0, 0)
+    this.transformFn(39, 0, 0)
+    // this.init(this.data[0], 39, 0, 0)
+    // this.actionChange(39, 340, 20)
     document.onkeydown = (e) => {
       //事件对象兼容
       let e1 = e || event || window.event || arguments.callee.caller.arguments[0]
+      console.log(e1.keyCode, 'e1.keyCode')
       const curentDirection = this.curentDirection
       if ([37, 38, 39, 40].includes(e1.keyCode)) {
         if (e1.keyCode == curentDirection) {
@@ -108,7 +135,8 @@ export default {
         this.actionChange(e1.keyCode, x, y)
         console.log('11111')
         clearInterval(this.timer)
-        this.init(e1.keyCode, x, y)
+        // this.init(e1.keyCode, x, y)
+        this.transformFn()
         this.curentDirection = e1.keyCode
       }
     }
